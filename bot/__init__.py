@@ -437,76 +437,12 @@ Popen(
     shell=True,
 )
 
-import shutil
-
-# =========================
-# XNOX SAFE EXECUTION
-# =========================
-if shutil.which("xnox"):
-    try:
-        srun(["xnox", "-d", "--profile=."], check=False)
-    except Exception as e:
-        warning(f"[WARN] xnox failed: {e}")
-else:
-    warning("[INFO] xnox not available - skipping")
-
-# =========================
-# .netrc SAFE HANDLING
-# =========================
-netrc_file = ".netrc"
-
-try:
-    if not ospath.exists(netrc_file):
-        with open(netrc_file, "w", encoding="utf-8") as f:
-            f.write("")
-
-    # chmod only works on Linux
-    if hasattr(ospath, "chmod"):
-        try:
-            srun(["chmod", "600", netrc_file], check=False)
-        except Exception:
-            pass
-
-except Exception as e:
-    warning(f"[WARN] netrc setup failed: {e}")
-
-# =========================
-# SAFE ROOT COPY (VPS ONLY)
-# =========================
-try:
-    if ospath.exists("/root"):
-        srun(["cp", netrc_file, "/root/.netrc"], check=False)
-    else:
-        warning("[INFO] /root not accessible (CI mode)")
-except Exception as e:
-    warning(f"[WARN] root copy skipped: {e}")
-
-import shutil
-
-# =========================
-# XRIA SAFE START (TORRENT ENGINE)
-# =========================
-try:
-    if shutil.which("xria"):
-        srun(["xria", "--conf-path=/usr/src/app/a2c.conf"], check=False)
-    else:
-        warning("[INFO] xria not found - skipping torrent engine startup")
-except Exception as e:
-    warning(f"[WARN] xria error: {e}")
-
-# =========================
-# GUNICORN SAFETY CHECK (CI FIX)
-# =========================
-try:
-    import gevent  # noqa
-    import zope.event  # noqa
-except Exception:
-    warning("[INFO] Missing gevent/zope.event - installing fallback dependencies may be required")
-
-# =========================
-# OPTIONAL AUTO-FALLBACK INFO
-# =========================
-warning("[INFO] Boot sequence completed safely")
+srun(["xnox", "-d", "--profile=."], check=False)
+if not ospath.exists(".netrc"):
+    with open(".netrc", "w"):
+        pass
+srun(["chmod", "600", ".netrc"], check=False)
+srun(["cp", ".netrc", "/root/.netrc"], check=False)
 
 trackers = (
     check_output(
