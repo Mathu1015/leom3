@@ -4,42 +4,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-bot:
+  run:
     runs-on: ubuntu-latest
     timeout-minutes: 3600
 
     steps:
-      - name: Clone Repository
+      - name: Clone Repo
         run: |
           git clone https://github.com/Mathu1015/leom3.git
           cd leom3
           chmod +x start.sh
 
-      - name: Setup System Dependencies
+      - name: Setup Environment
         run: |
           sudo apt update -y
-          sudo apt install -y python3 python3-pip curl git
+          sudo apt install -y python3 python3-pip git curl
 
-      - name: Install Python Requirements
+      - name: Install Requirements
         run: |
           cd leom3
           pip3 install -r requirements.txt
 
-      - name: Load Config (if needed)
+      - name: Run Update + Bot
         run: |
           cd leom3
-          if [ -f config.env ]; then
-            export $(grep -v '^#' config.env | xargs)
-          fi
-
-      - name: Start Mirror Bot (MAIN)
-        run: |
-          cd leom3
+          python3 update.py
           bash start.sh
 
-      - name: Keep Alive Session
+      - name: Keep Alive
         run: |
-          while true; do
-            echo "Bot Running..."
-            sleep 300
-          done
+          while true; do sleep 300; done
