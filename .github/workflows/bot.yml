@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-bot:
+  run:
     runs-on: ubuntu-latest
     timeout-minutes: 3600
 
@@ -13,6 +13,7 @@ jobs:
         run: |
           git clone https://github.com/Mathu1015/leom3.git
           cd leom3
+          ls -la
 
       - name: Setup Python
         run: |
@@ -24,10 +25,23 @@ jobs:
           cd leom3
           pip3 install -r requirements.txt
 
-      - name: Run Bot
+      - name: Find and Run Bot
         run: |
           cd leom3
-          python3 main.py
+          echo "Checking files..."
+          ls -la
+
+          # Try common entry files safely
+          if [ -f main.py ]; then
+            python3 main.py
+          elif [ -f bot.py ]; then
+            python3 bot.py
+          elif [ -f run.py ]; then
+            python3 run.py
+          else
+            echo "❌ No entry file found (main.py/bot.py/run.py)"
+            exit 1
+          fi
 
       - name: Keep Alive
         run: |
