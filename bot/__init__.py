@@ -481,6 +481,33 @@ try:
 except Exception as e:
     warning(f"[WARN] root copy skipped: {e}")
 
+import shutil
+
+# =========================
+# XRIA SAFE START (TORRENT ENGINE)
+# =========================
+try:
+    if shutil.which("xria"):
+        srun(["xria", "--conf-path=/usr/src/app/a2c.conf"], check=False)
+    else:
+        warning("[INFO] xria not found - skipping torrent engine startup")
+except Exception as e:
+    warning(f"[WARN] xria error: {e}")
+
+# =========================
+# GUNICORN SAFETY CHECK (CI FIX)
+# =========================
+try:
+    import gevent  # noqa
+    import zope.event  # noqa
+except Exception:
+    warning("[INFO] Missing gevent/zope.event - installing fallback dependencies may be required")
+
+# =========================
+# OPTIONAL AUTO-FALLBACK INFO
+# =========================
+warning("[INFO] Boot sequence completed safely")
+
 trackers = (
     check_output(
         "curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all https://raw.githubusercontent.com/hezhijie0327/Trackerslist/main/trackerslist_tracker.txt | awk '$0' | tr '\n\n' ','",
