@@ -58,3 +58,7 @@ uvicorn
 uvloop
 xattr
 yt-dlp[default,curl-cffi]
+gevent
+gunicorn
+zope.event
+zope.interface
