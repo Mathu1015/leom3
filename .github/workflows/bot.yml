@@ -1,48 +1,45 @@
-name: Mirror Bot Run
+name: leom3 Mirror Bot
 
 on:
   workflow_dispatch:
 
 jobs:
-  run:
+  run-bot:
     runs-on: ubuntu-latest
     timeout-minutes: 3600
 
     steps:
-      - name: Clone Repo
+      - name: Clone Repository
         run: |
           git clone https://github.com/Mathu1015/leom3.git
           cd leom3
-          ls -la
+          chmod +x start.sh
 
-      - name: Setup Python
+      - name: Setup System Dependencies
         run: |
           sudo apt update -y
-          sudo apt install python3 python3-pip -y
+          sudo apt install -y python3 python3-pip curl git
 
-      - name: Install Requirements
+      - name: Install Python Requirements
         run: |
           cd leom3
           pip3 install -r requirements.txt
 
-      - name: Find and Run Bot
+      - name: Load Config (if needed)
         run: |
           cd leom3
-          echo "Checking files..."
-          ls -la
-
-          # Try common entry files safely
-          if [ -f main.py ]; then
-            python3 main.py
-          elif [ -f bot.py ]; then
-            python3 bot.py
-          elif [ -f run.py ]; then
-            python3 run.py
-          else
-            echo "❌ No entry file found (main.py/bot.py/run.py)"
-            exit 1
+          if [ -f config.env ]; then
+            export $(grep -v '^#' config.env | xargs)
           fi
 
-      - name: Keep Alive
+      - name: Start Mirror Bot (MAIN)
         run: |
-          while true; do sleep 300; done
+          cd leom3
+          bash start.sh
+
+      - name: Keep Alive Session
+        run: |
+          while true; do
+            echo "Bot Running..."
+            sleep 300
+          done
