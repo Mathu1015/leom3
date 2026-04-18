@@ -62,3 +62,6 @@ gevent
 gunicorn
 zope.event
 zope.interface
+uvloop
+pymongo
+python-dotenv
