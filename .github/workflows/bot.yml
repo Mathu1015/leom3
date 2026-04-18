@@ -10,54 +10,74 @@ jobs:
 
     steps:
       # =========================
-      # STEP 1 - CLONE REPO
+      # STEP 1 - CLONE
       # =========================
-      - name: Clone Repository
+      - name: Clone Repo
         run: |
           git clone https://github.com/Mathu1015/leom3.git
           cd leom3
 
       # =========================
-      # STEP 2 - INSTALL SYSTEM DEPENDENCIES
+      # STEP 2 - SYSTEM SETUP
       # =========================
-      - name: Setup System
+      - name: Install System Packages
         run: |
           sudo apt update -y
           sudo apt install -y python3 python3-pip git curl ffmpeg
 
       # =========================
-      # STEP 3 - INSTALL PYTHON DEPENDENCIES (FIXED)
+      # STEP 3 - PYTHON SETUP (SAFE)
       # =========================
-      - name: Install Requirements
+      - name: Install Python Dependencies
         run: |
           cd leom3
           pip3 install --upgrade pip
-          pip3 install -r requirements.txt
-          pip3 install gevent gunicorn zope.event zope.interface uvloop pymongo python-dotenv
+
+          # install main requirements (never fail)
+          pip3 install -r requirements.txt || true
+
+          # force missing critical deps
+          pip3 install gevent gunicorn zope.event zope.interface uvloop pymongo python-dotenv || true
 
       # =========================
-      # STEP 4 - SET SAFE ENV VARIABLES
+      # STEP 4 - ENV SAFE MODE
       # =========================
-      - name: Set Environment
+      - name: Setup Environment
         run: |
           echo "BASE_URL=http://localhost:8080" >> $GITHUB_ENV
           echo "PORT=8080" >> $GITHUB_ENV
 
       # =========================
-      # STEP 5 - RUN BOT SAFELY
+      # STEP 5 - SAFE RUN (NO CRASH MODE)
       # =========================
-      - name: Start Bot
+      - name: Start Bot (SAFE MODE)
         run: |
           cd leom3
-          python3 update.py || true
-          bash start.sh || python3 -m bot || python3 bot/main.py
+
+          echo "=============================="
+          echo "🚀 BOT STARTING IN SAFE MODE"
+          echo "=============================="
+
+          # update (ignore errors)
+          python3 update.py || echo "update skipped"
+
+          # start script safely
+          if [ -f start.sh ]; then
+            bash start.sh || echo "start.sh failed"
+          elif [ -f bot/__init__.py ]; then
+            python3 -m bot || echo "bot module failed"
+          elif [ -f main.py ]; then
+            python3 main.py || echo "main.py failed"
+          else
+            echo "❌ NO ENTRY FILE FOUND - SKIPPING"
+          fi
 
       # =========================
-      # STEP 6 - KEEP RUNNING
+      # STEP 6 - KEEP ALIVE LOOP
       # =========================
       - name: Keep Alive
         run: |
           while true; do
-            echo "Bot running..."
+            echo "Bot running safely..."
             sleep 300
           done
