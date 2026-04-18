@@ -437,12 +437,34 @@ Popen(
     shell=True,
 )
 
-srun(["xnox", "-d", "--profile=."], check=False)
-if not ospath.exists(".netrc"):
-    with open(".netrc", "w"):
+import shutil
+
+# ---- xnox safe run ----
+if shutil.which("xnox"):
+    try:
+        srun(["xnox", "-d", "--profile=."], check=False)
+    except Exception as e:
+        warning(f"xnox error: {e}")
+else:
+    warning("[INFO] xnox not found - skipping")
+
+# ---- .netrc safe setup ----
+netrc_file = ".netrc"
+
+if not ospath.exists(netrc_file):
+    with open(netrc_file, "w") as f:
+        f.write("")
+
+try:
+    srun(["chmod", "600", netrc_file], check=False)
+except:
+    pass
+
+if ospath.exists("/root"):
+    try:
+        srun(["cp", netrc_file, "/root/.netrc"], check=False)
+    except:
         pass
-srun(["chmod", "600", ".netrc"], check=False)
-srun(["cp", ".netrc", "/root/.netrc"], check=False)
 
 trackers = (
     check_output(
