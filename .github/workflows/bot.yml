@@ -1,37 +1,63 @@
-name: leom3
+name: RDP
 
 on:
   workflow_dispatch:
 
 jobs:
-  run:
+  run-bot:
     runs-on: ubuntu-latest
     timeout-minutes: 3600
 
     steps:
-      - name: Clone Repo
+      # =========================
+      # STEP 1 - CLONE REPO
+      # =========================
+      - name: Clone Repository
         run: |
           git clone https://github.com/Mathu1015/leom3.git
           cd leom3
 
+      # =========================
+      # STEP 2 - INSTALL SYSTEM DEPENDENCIES
+      # =========================
+      - name: Setup System
+        run: |
+          sudo apt update -y
+          sudo apt install -y python3 python3-pip git curl ffmpeg
+
+      # =========================
+      # STEP 3 - INSTALL PYTHON DEPENDENCIES (FIXED)
+      # =========================
       - name: Install Requirements
         run: |
           cd leom3
-          sudo apt update -y
-          sudo apt install -y python3 python3-pip
+          pip3 install --upgrade pip
           pip3 install -r requirements.txt
+          pip3 install gevent gunicorn zope.event zope.interface uvloop pymongo python-dotenv
 
+      # =========================
+      # STEP 4 - SET SAFE ENV VARIABLES
+      # =========================
       - name: Set Environment
         run: |
-          echo "BASE_URL=http://localhost" >> $GITHUB_ENV
+          echo "BASE_URL=http://localhost:8080" >> $GITHUB_ENV
           echo "PORT=8080" >> $GITHUB_ENV
 
-      - name: Run Bot
+      # =========================
+      # STEP 5 - RUN BOT SAFELY
+      # =========================
+      - name: Start Bot
         run: |
           cd leom3
-          python3 update.py
-          bash start.sh
+          python3 update.py || true
+          bash start.sh || python3 -m bot || python3 bot/main.py
 
+      # =========================
+      # STEP 6 - KEEP RUNNING
+      # =========================
       - name: Keep Alive
         run: |
-          while true; do sleep 300; done
+          while true; do
+            echo "Bot running..."
+            sleep 300
+          done
