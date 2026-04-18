@@ -439,32 +439,47 @@ Popen(
 
 import shutil
 
-# ---- xnox safe run ----
+# =========================
+# XNOX SAFE EXECUTION
+# =========================
 if shutil.which("xnox"):
     try:
         srun(["xnox", "-d", "--profile=."], check=False)
     except Exception as e:
-        warning(f"xnox error: {e}")
+        warning(f"[WARN] xnox failed: {e}")
 else:
-    warning("[INFO] xnox not found - skipping")
+    warning("[INFO] xnox not available - skipping")
 
-# ---- .netrc safe setup ----
+# =========================
+# .netrc SAFE HANDLING
+# =========================
 netrc_file = ".netrc"
 
-if not ospath.exists(netrc_file):
-    with open(netrc_file, "w") as f:
-        f.write("")
-
 try:
-    srun(["chmod", "600", netrc_file], check=False)
-except:
-    pass
+    if not ospath.exists(netrc_file):
+        with open(netrc_file, "w", encoding="utf-8") as f:
+            f.write("")
 
-if ospath.exists("/root"):
-    try:
+    # chmod only works on Linux
+    if hasattr(ospath, "chmod"):
+        try:
+            srun(["chmod", "600", netrc_file], check=False)
+        except Exception:
+            pass
+
+except Exception as e:
+    warning(f"[WARN] netrc setup failed: {e}")
+
+# =========================
+# SAFE ROOT COPY (VPS ONLY)
+# =========================
+try:
+    if ospath.exists("/root"):
         srun(["cp", netrc_file, "/root/.netrc"], check=False)
-    except:
-        pass
+    else:
+        warning("[INFO] /root not accessible (CI mode)")
+except Exception as e:
+    warning(f"[WARN] root copy skipped: {e}")
 
 trackers = (
     check_output(
