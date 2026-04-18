@@ -1,4 +1,4 @@
-name: leom3 Mirror Bot
+name: leom3
 
 on:
   workflow_dispatch:
@@ -13,19 +13,20 @@ jobs:
         run: |
           git clone https://github.com/Mathu1015/leom3.git
           cd leom3
-          chmod +x start.sh
-
-      - name: Setup Environment
-        run: |
-          sudo apt update -y
-          sudo apt install -y python3 python3-pip git curl
 
       - name: Install Requirements
         run: |
           cd leom3
+          sudo apt update -y
+          sudo apt install -y python3 python3-pip
           pip3 install -r requirements.txt
 
-      - name: Run Update + Bot
+      - name: Set Environment
+        run: |
+          echo "BASE_URL=http://localhost" >> $GITHUB_ENV
+          echo "PORT=8080" >> $GITHUB_ENV
+
+      - name: Run Bot
         run: |
           cd leom3
           python3 update.py
